@@ -2,8 +2,13 @@
 
 # PWA Dark Title Bar Color Force
 
-A lightweight browser extension designed to force a theme-appropriate title bar color for specific Progressive Web Apps (PWAs) like Telegram. It runs as early as possible (`document_start`) and respects the user's OS dark/light mode preference dynamically:
-- **Dark Mode:** Forces a solid black theme color (`#000000`) and uses a robust `MutationObserver` to ensure it is persistent even if the SPA framework attempts to reset it.
+A lightweight browser extension designed to force a theme-appropriate title bar color for Progressive Web Apps (PWAs). 
+
+### The Goal
+This extension is specifically designed to fix a common issue in other extensions (like colorful PWA extensions) where **restarting the PWA does not automatically apply the black title bar** until you manually click on the extension icon again. By injecting at `document_start` and monitoring the DOM with a robust `MutationObserver`, this extension ensures the black title bar is applied instantly and persistently from the very first frame without requiring any user interaction.
+
+### Behavior
+- **Dark Mode:** Forces a solid black theme color (`#000000`) and dynamically overrides any attempts by the page's SPA framework to reset it.
 - **Light Mode:** Does nothing (and restores/removes any dark mode override if transitioning back to light mode) to leave the site's default behavior completely untouched.
 
 Matches the development and build patterns of [damn-center-extension](https://github.com/rinn7e/damn-center-extension). Built with **Vite**, **TypeScript**, and **ESLint**.
