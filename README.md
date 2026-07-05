@@ -13,9 +13,18 @@ This extension is specifically designed to fix a common issue in other extension
 
 Matches the development and build patterns of [damn-center-extension](https://github.com/rinn7e/damn-center-extension). Built with **Vite**, **TypeScript**, and **ESLint**.
 
-## Screenshot
+## Screenshots
 
-![PWA Dark Title Bar Color Force Screenshot](public/screenshot.png)
+### Settings Popup UI
+![PWA Dark Title Bar Color Force Settings Popup](public/screenshot.png)
+
+### Before & After Comparison
+
+#### Before (Original Title Bar)
+![Before](public/screenshots/before.png)
+
+#### After (Forced Black Title Bar)
+![After](public/screenshots/after.png)
 
 ---
 
