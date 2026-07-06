@@ -6,8 +6,8 @@ Configure any PWA default theme color base on OS color scheme.
 
 ## 🛠️ Code Conventions & Design Rules
 This project follows strict styling and design guidelines to maintain modularity and maintainability.
-- View and logic conventions, unit tests, and layout restrictions are documented in detail inside the [Code Convention Document](file:///Users/rinn7e/projects/rinn7e-technology/dark-pwa-extension/docs/code-convention.md).
-- Workspace rules are enforced via the [.agents/AGENTS.md](file:///Users/rinn7e/projects/rinn7e-technology/dark-pwa-extension/.agents/AGENTS.md) file.
+- View and logic conventions, unit tests, and layout restrictions are documented in detail inside the [Code Convention Document](file:///Users/rinn7e/projects/rinn7e-technology/paint-pwa-extension/docs/code-convention.md).
+- Workspace rules are enforced via the [.agents/AGENTS.md](file:///Users/rinn7e/projects/rinn7e-technology/paint-pwa-extension/.agents/AGENTS.md) file.
 
 ---
 

@@ -250,7 +250,7 @@ const footerView = (
 
       <div className='flex justify-between items-center'>
         <a
-          href='https://github.com/rinn7e/dark-pwa-extension'
+          href='https://github.com/rinn7e/paint-pwa-extension'
           target='_blank'
           rel='noopener noreferrer'
           className='hover:text-blue-500 transition-colors font-medium'
