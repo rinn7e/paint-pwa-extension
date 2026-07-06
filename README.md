@@ -8,8 +8,9 @@ A lightweight browser extension designed to force a theme-appropriate title bar 
 This extension is specifically designed to fix a common issue in other extensions (like colorful PWA extensions) where **restarting the PWA does not automatically apply the black title bar** until you manually click on the extension icon again. By injecting at `document_start` and monitoring the DOM with a robust `MutationObserver`, this extension ensures the black title bar is applied instantly and persistently from the very first frame without requiring any user interaction.
 
 ### Behavior
-- **Dark Mode:** Forces a solid black theme color (`#000000`) and dynamically overrides any attempts by the page's SPA framework to reset it.
-- **Light Mode:** Does nothing (and restores/removes any dark mode override if transitioning back to light mode) to leave the site's default behavior completely untouched.
+- **Dark Mode Overwrite:** When enabled, forces a custom dark theme color (default: `#000000`) and dynamically overrides any attempts by the page's SPA framework to reset it.
+- **Light Mode Overwrite:** When enabled, forces a custom light theme color (default: `#ffffff`) to customize the title bar for PWA light theme mode.
+- If either toggle is disabled, the extension does nothing for that mode, allowing the site's default developer-set theme color and dynamic changes to render naturally.
 
 Matches the development and build patterns of [damn-center-extension](https://github.com/rinn7e/damn-center-extension). Built with **Vite**, **TypeScript**, and **ESLint**.
 

@@ -1,7 +1,9 @@
-let enabled = true
+let darkEnabled = false
 let darkColor = '#000000'
+let lightEnabled = false
+let lightColor = '#ffffff'
 
-// Keep track of the original theme color that was specified in the HTML or dynamically set in light/disabled mode
+// Keep track of the original theme color that was specified in the HTML or dynamically set when not overriden
 let initialThemeColor: string | null = null
 let didCheckInitialColor = false
 
@@ -32,42 +34,37 @@ const captureInitialThemeColor = () => {
 // Function to apply/enforce the theme color based on active mode and enabled state
 const applyThemeColor = () => {
   const isDarkMode = prefersDarkModeMedia.matches
-  const shouldEnforce = enabled && isDarkMode
+  const shouldEnforce = isDarkMode ? darkEnabled : lightEnabled
+  const targetColor = isDarkMode ? darkColor : lightColor
 
   if (shouldEnforce) {
-    // Capturing original developer-set color if not done already
     captureInitialThemeColor()
 
-    // Enforce dark color
     let meta = getThemeColorMeta()
     if (!meta) {
       meta = document.createElement('meta')
       meta.name = 'theme-color'
-      meta.content = darkColor
+      meta.content = targetColor
       document.head.appendChild(meta)
       createdMetaElement = meta
     } else {
-      if (meta.getAttribute('content') !== darkColor) {
-        meta.setAttribute('content', darkColor)
+      if (meta.getAttribute('content') !== targetColor) {
+        meta.setAttribute('content', targetColor)
       }
     }
   } else {
-    // Light mode or extension disabled: Restore original or do nothing
     let meta = getThemeColorMeta()
     if (meta) {
       if (createdMetaElement === meta) {
-        // If we created it, remove it to leave the page in its original state
         meta.remove()
         createdMetaElement = null
       } else if (
         initialThemeColor !== null &&
         meta.getAttribute('content') !== initialThemeColor
       ) {
-        // Restore the developer's original color if it was modified
         meta.setAttribute('content', initialThemeColor)
       }
     }
-    // Reset checking if no tag is present, so we can recheck if the site inserts one later
     if (!meta) {
       didCheckInitialColor = false
       initialThemeColor = null
@@ -78,10 +75,10 @@ const applyThemeColor = () => {
 // Handler for mutations in head or theme-color element
 const handleMutations = (mutations: MutationRecord[]) => {
   const isDarkMode = prefersDarkModeMedia.matches
-  const shouldEnforce = enabled && isDarkMode
+  const shouldEnforce = isDarkMode ? darkEnabled : lightEnabled
+  const targetColor = isDarkMode ? darkColor : lightColor
 
   if (!shouldEnforce) {
-    // If not enforcing, track developer's dynamic modifications
     const meta = getThemeColorMeta()
     if (meta && meta !== createdMetaElement) {
       initialThemeColor = meta.getAttribute('content')
@@ -90,14 +87,13 @@ const handleMutations = (mutations: MutationRecord[]) => {
     return
   }
 
-  // Enforcing: override everything to darkColor
   let needsEnforce = false
 
   for (const mutation of mutations) {
     if (mutation.type === 'childList') {
       for (const node of Array.from(mutation.addedNodes)) {
         if (node instanceof HTMLMetaElement && node.name === 'theme-color') {
-          if (node.getAttribute('content') !== darkColor) {
+          if (node.getAttribute('content') !== targetColor) {
             initialThemeColor = node.getAttribute('content')
             didCheckInitialColor = true
             needsEnforce = true
@@ -117,7 +113,7 @@ const handleMutations = (mutations: MutationRecord[]) => {
         mutation.target.name === 'theme-color'
       ) {
         const newValue = mutation.target.getAttribute('content')
-        if (newValue !== darkColor) {
+        if (newValue !== targetColor) {
           initialThemeColor = newValue
           didCheckInitialColor = true
           needsEnforce = true
@@ -153,16 +149,26 @@ const stopObserving = () => {
   }
 }
 
-// Load configurations from storage and initialize
+// Load configuration for the current hostname from storage and initialize
 const init = () => {
+  const hostname = window.location.hostname
   if (
     typeof chrome !== 'undefined' &&
     chrome.storage &&
     chrome.storage.local
   ) {
-    chrome.storage.local.get(['enabled', 'darkColor'], (res) => {
-      if (res.enabled !== undefined) enabled = res.enabled
-      if (res.darkColor !== undefined) darkColor = res.darkColor
+    chrome.storage.local.get([hostname], (res) => {
+      const saved = res[hostname]
+      if (saved) {
+        darkEnabled = saved.darkEnabled !== undefined ? saved.darkEnabled : false
+        darkColor = saved.darkColor !== undefined ? saved.darkColor : '#000000'
+        lightEnabled = saved.lightEnabled !== undefined ? saved.lightEnabled : false
+        lightColor = saved.lightColor !== undefined ? saved.lightColor : '#ffffff'
+      } else {
+        // If domain has never been configured, default overrides to disabled (untouched)
+        darkEnabled = false
+        lightEnabled = false
+      }
 
       captureInitialThemeColor()
       applyThemeColor()
@@ -182,9 +188,14 @@ if (
   chrome.runtime.onMessage
 ) {
   chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'SETTINGS_UPDATED') {
-      enabled = message.settings.enabled
+    if (
+      message.type === 'SETTINGS_UPDATED' &&
+      message.hostname === window.location.hostname
+    ) {
+      darkEnabled = message.settings.darkEnabled
       darkColor = message.settings.darkColor
+      lightEnabled = message.settings.lightEnabled
+      lightColor = message.settings.lightColor
 
       stopObserving()
       applyThemeColor()
