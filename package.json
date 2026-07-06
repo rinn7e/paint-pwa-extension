@@ -13,6 +13,7 @@
     "check": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "test": "vitest run",
     "build:chrome": "TARGET=chrome vite build && TARGET=chrome BUILD_TARGET=content vite build && cd dist/chrome && zip -r ../dark-pwa-chrome-v1.0.0.zip .",
     "build:firefox": "TARGET=firefox vite build && TARGET=firefox BUILD_TARGET=content vite build && cd dist/firefox && zip -r ../dark-pwa-firefox-v1.0.0.zip .",
     "build:safari": "TARGET=safari vite build && TARGET=safari BUILD_TARGET=content vite build && cd dist/safari && zip -r ../dark-pwa-safari-v1.0.0.zip .",
@@ -44,6 +45,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.34.1",
-    "vite": "^8.0.14"
+    "vite": "^8.0.14",
+    "vitest": "^4.1.9"
   }
 }

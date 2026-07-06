@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Moremi Vannak
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 @import 'tailwindcss';
 
 :root {
@@ -32,4 +37,25 @@ input[type='color']::-webkit-color-swatch-wrapper {
 input[type='color']::-webkit-color-swatch {
   border: 1px solid var(--color-border-card);
   border-radius: 4px;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.marquee-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 15s linear infinite;
 }

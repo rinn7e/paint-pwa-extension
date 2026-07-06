@@ -1,18 +1,21 @@
+/*
+ * Copyright (C) 2026 Moremi Vannak
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import * as TE from 'fp-ts/lib/TaskEither'
 
-export interface Settings {
-  darkEnabled: boolean
-  darkColor: string
-  lightEnabled: boolean
-  lightColor: string
-}
-
-export const defaultSettings: Settings = {
-  darkEnabled: true,
-  darkColor: '#000000',
-  lightEnabled: false,
-  lightColor: '#ffffff',
-}
+import { DEFAULT_FONT_SIZE } from '../common/env'
+import {
+  type GlobalSetting,
+  GlobalSettingCodec,
+  defaultGlobalSetting,
+} from '../common/type/global-setting'
+import {
+  type Settings,
+  SettingsCodec,
+  defaultSettings,
+} from '../common/type/settings'
 
 export const getHostname = (urlStr: string): string => {
   if (
@@ -32,6 +35,81 @@ export const getHostname = (urlStr: string): string => {
   }
 }
 
+export const loadGlobalSettingsPromise = (): Promise<{
+  enabled: boolean
+  fontSize: number
+}> => {
+  return new Promise<{ enabled: boolean; fontSize: number }>((resolve) => {
+    if (
+      typeof chrome === 'undefined' ||
+      !chrome.storage ||
+      !chrome.storage.local
+    ) {
+      resolve({ enabled: true, fontSize: DEFAULT_FONT_SIZE })
+    } else {
+      chrome.storage.local.get(['global_settings'], (res) => {
+        const saved = res['global_settings']
+        if (!saved) {
+          resolve({ enabled: true, fontSize: DEFAULT_FONT_SIZE })
+        } else {
+          const decoded = GlobalSettingCodec.decode(saved)
+          if (decoded._tag === 'Right') {
+            resolve({
+              enabled: decoded.right.enabled !== undefined ? decoded.right.enabled : true,
+              fontSize:
+                decoded.right.fontSize !== undefined
+                  ? decoded.right.fontSize
+                  : DEFAULT_FONT_SIZE,
+            })
+          } else {
+            resolve({ enabled: true, fontSize: DEFAULT_FONT_SIZE })
+          }
+        }
+      })
+    }
+  })
+}
+
+export const saveGlobalSettingsPromise = (
+  enabled: boolean,
+  fontSize: number,
+): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    if (
+      typeof chrome === 'undefined' ||
+      !chrome.storage ||
+      !chrome.storage.local
+    ) {
+      reject(new Error('chrome.storage.local is not available'))
+    } else {
+      chrome.storage.local.set(
+        { global_settings: { enabled, fontSize } },
+        () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message))
+          } else {
+            chrome.tabs.query({}, (tabs) => {
+              tabs.forEach((tab) => {
+                if (tab.id) {
+                  chrome.tabs
+                    .sendMessage(tab.id, {
+                      type: 'GLOBAL_SETTINGS_UPDATED',
+                      enabled,
+                    })
+                    .catch(() => {
+                      // Suppress error
+                    })
+                }
+              })
+            })
+            resolve()
+          }
+        },
+      )
+    }
+  })
+}
+
 export const loadSettingsPromise = (hostname: string): Promise<Settings> => {
   return new Promise<Settings>((resolve) => {
     if (
@@ -44,27 +122,32 @@ export const loadSettingsPromise = (hostname: string): Promise<Settings> => {
     } else {
       chrome.storage.local.get([hostname], (res) => {
         const saved = res[hostname]
-        if (saved) {
-          resolve({
-            darkEnabled:
-              saved.darkEnabled !== undefined
-                ? saved.darkEnabled
-                : defaultSettings.darkEnabled,
-            darkColor:
-              saved.darkColor !== undefined
-                ? saved.darkColor
-                : defaultSettings.darkColor,
-            lightEnabled:
-              saved.lightEnabled !== undefined
-                ? saved.lightEnabled
-                : defaultSettings.lightEnabled,
-            lightColor:
-              saved.lightColor !== undefined
-                ? saved.lightColor
-                : defaultSettings.lightColor,
-          })
-        } else {
+        if (!saved) {
           resolve(defaultSettings)
+        } else {
+          const decoded = SettingsCodec.decode(saved)
+          if (decoded._tag === 'Right') {
+            resolve({
+              darkEnabled:
+                decoded.right.darkEnabled !== undefined
+                  ? decoded.right.darkEnabled
+                  : defaultSettings.darkEnabled,
+              darkColor:
+                decoded.right.darkColor !== undefined
+                  ? decoded.right.darkColor
+                  : defaultSettings.darkColor,
+              lightEnabled:
+                decoded.right.lightEnabled !== undefined
+                  ? decoded.right.lightEnabled
+                  : defaultSettings.lightEnabled,
+              lightColor:
+                decoded.right.lightColor !== undefined
+                  ? decoded.right.lightColor
+                  : defaultSettings.lightColor,
+            })
+          } else {
+            resolve(defaultSettings)
+          }
         }
       })
     }

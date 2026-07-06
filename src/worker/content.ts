@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2026 Moremi Vannak
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
+let globalEnabled = true
 let darkEnabled = false
 let darkColor = '#000000'
 let lightEnabled = false
@@ -34,7 +40,8 @@ const captureInitialThemeColor = () => {
 // Function to apply/enforce the theme color based on active mode and enabled state
 const applyThemeColor = () => {
   const isDarkMode = prefersDarkModeMedia.matches
-  const shouldEnforce = isDarkMode ? darkEnabled : lightEnabled
+  const shouldEnforce =
+    globalEnabled && (isDarkMode ? darkEnabled : lightEnabled)
   const targetColor = isDarkMode ? darkColor : lightColor
 
   if (shouldEnforce) {
@@ -75,7 +82,8 @@ const applyThemeColor = () => {
 // Handler for mutations in head or theme-color element
 const handleMutations = (mutations: MutationRecord[]) => {
   const isDarkMode = prefersDarkModeMedia.matches
-  const shouldEnforce = isDarkMode ? darkEnabled : lightEnabled
+  const shouldEnforce =
+    globalEnabled && (isDarkMode ? darkEnabled : lightEnabled)
   const targetColor = isDarkMode ? darkColor : lightColor
 
   if (!shouldEnforce) {
@@ -157,15 +165,27 @@ const init = () => {
     chrome.storage &&
     chrome.storage.local
   ) {
-    chrome.storage.local.get([hostname], (res) => {
+    chrome.storage.local.get(['global_settings', hostname], (res) => {
+      // 1. Get global settings
+      const globalSaved = res['global_settings']
+      globalEnabled =
+        globalSaved && globalSaved.enabled !== undefined
+          ? globalSaved.enabled
+          : true
+
+      // 2. Get hostname settings
       const saved = res[hostname]
       if (saved) {
-        darkEnabled = saved.darkEnabled !== undefined ? saved.darkEnabled : false
-        darkColor = saved.darkColor !== undefined ? saved.darkColor : '#000000'
-        lightEnabled = saved.lightEnabled !== undefined ? saved.lightEnabled : false
-        lightColor = saved.lightColor !== undefined ? saved.lightColor : '#ffffff'
+        darkEnabled =
+          saved.darkEnabled !== undefined ? saved.darkEnabled : false
+        darkColor =
+          saved.darkColor !== undefined ? saved.darkColor : '#000000'
+        lightEnabled =
+          saved.lightEnabled !== undefined ? saved.lightEnabled : false
+        lightColor =
+          saved.lightColor !== undefined ? saved.lightColor : '#ffffff'
       } else {
-        // If domain has never been configured, default overrides to disabled (untouched)
+        // Default to disabled overrides if domain is unconfigured
         darkEnabled = false
         lightEnabled = false
       }
@@ -188,7 +208,13 @@ if (
   chrome.runtime.onMessage
 ) {
   chrome.runtime.onMessage.addListener((message) => {
-    if (
+    if (message.type === 'GLOBAL_SETTINGS_UPDATED') {
+      globalEnabled = message.enabled
+
+      stopObserving()
+      applyThemeColor()
+      startObserving()
+    } else if (
       message.type === 'SETTINGS_UPDATED' &&
       message.hostname === window.location.hostname
     ) {
