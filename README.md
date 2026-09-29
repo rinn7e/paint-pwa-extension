@@ -2,6 +2,8 @@
 
 # Paint PWA
 
+[![AI-DECLARATION: assist](https://img.shields.io/badge/䷼%20AI--DECLARATION-assist-fef9c3?labelColor=fef9c3)](AI-DECLARATION.md)
+
 Configure any PWA default theme color base on OS color scheme.
 
 ## Code Conventions & Design Rules
@@ -149,6 +151,13 @@ This compiles the extension code and outputs target directories:
 
 1. Ensure the **Develop** menu is enabled in Safari (`Safari` > `Settings` > `Advanced` > `Show Develop menu in menu bar`).
 2. Build the Xcode project wrappers using Safari Web Extension tools (configured via your script/templates).
+
+---
+
+## AI declaration
+
+This project declares its AI usage in [AI-DECLARATION.md](AI-DECLARATION.md), following the
+[AI-DECLARATION.md](https://ai-declaration.md) standard (level: `assist`).
 
 ---
 
